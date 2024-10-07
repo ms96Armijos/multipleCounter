@@ -64,7 +64,7 @@ class _ProductScreenState extends State<ProductScreen> {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 146, 132, 118),
       appBar: AppBar(
-        title: const Text('Counteres de Products'),
+        title: const Text('Counters of Products'),
         actions: [
           IconButton(
             icon: const Icon(Icons.send),
@@ -139,7 +139,7 @@ class _ProductScreenState extends State<ProductScreen> {
                   ),
                   const SizedBox(width: 10),
                   Text(
-                    'Total: ${products[index].total.toStringAsFixed(2)},',
+                    'Total: ${products[index].total.toStringAsFixed(2)}',
                     style: const TextStyle(
                         fontWeight: FontWeight.bold, fontSize: 13),
                   ),
