@@ -26,36 +26,28 @@ class _ProductScreenState extends State<ProductScreen> {
     Product(name: 'Product 10', price: 10.25),
   ];
 
-  void _incrementDecrementCounter(int index, String operation) {
-    if (products[index].counter <= 0 && operation == 'decrement') {
-      return;
+  void _updateCounter(int index, int operation) {
+    if (products[index].counter == 0 && operation == -1) {
+      return; // No permitir decrementar si el contador es 0
     }
 
     setState(() {
-      operation == 'increment'
-          ? products[index].counter++
-          : products[index].counter--;
-      products[index].price;
+      products[index].counter += operation;
       products[index].total = products[index].price * products[index].counter;
-      operation == 'increment'
-          ? totalOrder += products[index].price
-          : totalOrder -= products[index].price;
+      totalOrder += products[index].price * operation;
     });
   }
 
   Future<void> _sendData() async {
-    // Filtrar products con total diferente de cero
-    List<Product> productsNoVacios =
-        products.where((producto) => producto.total != 0).toList();
-
-    // Convertir la lista filtrada a JSON
-    nonEmptyProducts = jsonEncode(
-        productsNoVacios.map((products) => products.toJson()).toList());
+    final nonEmptyProductsList =
+        products.where((product) => product.total != 0).toList();
+    final jsonData = jsonEncode(
+        nonEmptyProductsList.map((product) => product.toJson()).toList());
 
     setState(() {
-      if (nonEmptyProducts.isEmpty) {
-        totalOrder = 0;
-      }
+      nonEmptyProducts = jsonData;
+      totalOrder =
+          nonEmptyProductsList.fold(0.0, (sum, product) => sum + product.total);
     });
   }
 
@@ -75,28 +67,32 @@ class _ProductScreenState extends State<ProductScreen> {
       body: Column(
         children: [
           Expanded(child: buildListProduct()),
-          SizedBox(
-            height: 150.0,
+          Card(
+            margin: const EdgeInsets.all(8.0),
             child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    const SizedBox(height: 10),
-                    Text(
-                      nonEmptyProducts,
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      'Total \$${totalOrder.toStringAsFixed(2)}',
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20),
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  if (nonEmptyProducts.isEmpty)
+                    const Text(
+                      'No products selected.',
+                      style: TextStyle(color: Colors.grey, fontSize: 16),
                     )
-                  ],
-                ),
+                  else
+                    Text(
+                      'Selected Products: $nonEmptyProducts',
+                      style: const TextStyle(color: Colors.black, fontSize: 14),
+                    ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Total: \$${totalOrder.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -113,38 +109,38 @@ class _ProductScreenState extends State<ProductScreen> {
           color: const Color.fromARGB(255, 232, 212, 169),
           margin: const EdgeInsets.all(10),
           child: ListTile(
-            title: Column(children: [
-              Text('Cant.: ${products[index].counter}'),
-              Text('Price: \$ ${products[index].price}'),
-            ]),
-            leading: Text(products[index].name),
-            trailing: SizedBox(
-              width: 220.0,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  ElevatedButton(
-                    onPressed: () =>
-                        _incrementDecrementCounter(index, 'decrement'),
-                    child: const Text('-',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 30)),
-                  ),
-                  ElevatedButton(
-                    onPressed: () =>
-                        _incrementDecrementCounter(index, 'increment'),
-                    child: const Text('+',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 20)),
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    'Total: ${products[index].total.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 13),
-                  ),
-                ],
-              ),
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(products[index].name,
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 5),
+                Text('Price: \$${products[index].price.toStringAsFixed(2)}'),
+                const SizedBox(height: 5),
+                Text('Quantity: ${products[index].counter}'),
+              ],
+            ),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  onPressed: () => _updateCounter(index, -1),
+                  icon: const Icon(Icons.remove, size: 24),
+                ),
+                Text(
+                  '${products[index].counter}',
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                IconButton(
+                  onPressed: () => _updateCounter(index, 1),
+                  icon: const Icon(Icons.add, size: 24),
+                ),
+              ],
+            ),
+            subtitle: Text(
+              'Total: \$${products[index].total.toStringAsFixed(2)}',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
             ),
           ),
         );
